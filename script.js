@@ -13,155 +13,34 @@
   const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
   /* ──────────────────────────────────────────────────────────
-     STATE & FIREBASE MOCK FALLBACK
+     STATE & FIREBASE INITIALIZATION (NO FALLBACKS)
   ────────────────────────────────────────────────────────── */
   let currentPage = 'home';
   let isTransitioning = false;
-  let isFirestoreDisabled = false;
 
-  // Helper to generate a Firebase-style 20-character alphanumeric ID
-  function generateFirestoreId() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let autoId = '';
-    for (let i = 0; i < 20; i++) {
-      autoId += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return autoId;
-  }
 
-  // LocalStorage Database Mock
-  class LocalStorageFirestoreMock {
-    collection(name) {
-      return {
-        orderBy: (field, direction) => {
-          return {
-            get: () => {
-              return new Promise((resolve) => {
-                const list = JSON.parse(localStorage.getItem(`mock_db_${name}`) || '[]');
-                list.sort((a, b) => {
-                  const valA = a[field];
-                  const valB = b[field];
-                  if (direction === 'desc') {
-                    return valA < valB ? 1 : valA > valB ? -1 : 0;
-                  }
-                  return valA > valB ? 1 : valA < valB ? -1 : 0;
-                });
-                const snapshot = {
-                  empty: list.length === 0,
-                  forEach: (callback) => {
-                    list.forEach(item => {
-                      callback({
-                        data: () => item,
-                        id: item.id,
-                        exists: true
-                      });
-                    });
-                  }
-                };
-                resolve(snapshot);
-              });
-            }
-          };
-        },
-        doc: (id) => {
-          const docId = id || generateFirestoreId();
-          return {
-            id: docId,
-            get: () => {
-              return new Promise((resolve) => {
-                const list = JSON.parse(localStorage.getItem(`mock_db_${name}`) || '[]');
-                const item = list.find(x => x.id === docId);
-                resolve({
-                  exists: !!item,
-                  data: () => item
-                });
-              });
-            },
-            set: (data) => {
-              return new Promise((resolve) => {
-                const list = JSON.parse(localStorage.getItem(`mock_db_${name}`) || '[]');
-                const dataCopy = { ...data, id: docId };
-                if (dataCopy.createdAt && typeof dataCopy.createdAt === 'object') {
-                  dataCopy.createdAt = new Date().toISOString();
-                }
-                const idx = list.findIndex(x => x.id === docId);
-                if (idx !== -1) {
-                  list[idx] = { ...list[idx], ...dataCopy };
-                } else {
-                  list.push(dataCopy);
-                }
-                localStorage.setItem(`mock_db_${name}`, JSON.stringify(list));
-                resolve();
-              });
-            },
-            delete: () => {
-              return new Promise((resolve) => {
-                let list = JSON.parse(localStorage.getItem(`mock_db_${name}`) || '[]');
-                list = list.filter(x => x.id !== docId);
-                localStorage.setItem(`mock_db_${name}`, JSON.stringify(list));
-                resolve();
-              });
-            }
-          };
-        }
-      };
-    }
-  }
-
-  // LocalStorage Storage Mock
-  class LocalStorageStorageMock {
-    ref(path) {
-      return {
-        put: (file) => {
-          let downloadUrl = '';
-          const task = {
-            on: (event, progress, error, complete) => {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                downloadUrl = e.target.result;
-                progress({ bytesTransferred: 50, totalBytes: 100 });
-                setTimeout(() => {
-                  progress({ bytesTransferred: 100, totalBytes: 100 });
-                  complete();
-                }, 100);
-              };
-              reader.onerror = (err) => error(err);
-              reader.readAsDataURL(file);
-            },
-            snapshot: {
-              ref: {
-                getDownloadURL: () => {
-                  return Promise.resolve(downloadUrl);
-                }
-              }
-            }
-          };
-          return task;
-        }
-      };
-    }
-    refFromURL(url) {
-      return {
-        delete: () => Promise.resolve()
-      };
-    }
-  }
 
   let db = null;
   let storage = null;
+  let lastFirebaseError = null;
 
-  function switchToFallback() {
-    if (isFirestoreDisabled) return;
-    isFirestoreDisabled = true;
-    db = new LocalStorageFirestoreMock();
-    storage = new LocalStorageStorageMock();
-    console.warn("Using LocalStorage fallback database and storage.");
-    if (currentPage === 'admin') {
-      loadAdminDashboard();
+  function recordFirebaseError(context, err) {
+    lastFirebaseError = {
+      context: context,
+      message: err.message || String(err),
+      code: err.code || 'unknown',
+      timestamp: new Date().toLocaleTimeString(),
+      stack: err.stack || ''
+    };
+    console.error(`[Firebase Error Log - ${context}]:`, err);
+    
+    // Refresh status indicator if user is currently viewing the admin dashboard
+    if (currentPage === 'admin' && typeof updateAdminStatusBox === 'function') {
+      updateAdminStatusBox();
     }
   }
 
-  // Define global firebase mock if not loaded (for serverTimestamp compatibility)
+  // Define global firebase mock if not loaded (for serverTimestamp compatibility in forms)
   if (typeof firebase === 'undefined') {
     window.firebase = {
       firestore: {
@@ -173,17 +52,24 @@
   }
 
   // Initialize
+  let initError = null;
   if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
     try {
       db = firebase.firestore();
       storage = firebase.storage();
     } catch (e) {
-      console.warn("Failed to initialize Firebase services, switching to fallback:", e);
-      switchToFallback();
+      initError = e;
+      recordFirebaseError("Firebase Initialization", e);
     }
   } else {
-    switchToFallback();
+    const errorMsg = typeof firebase === 'undefined'
+      ? "Firebase SDK failed to load. The CDN script connections are blocked (possibly by an adblocker/firewall) or you are offline."
+      : "Firebase apps are not initialized.";
+    initError = new Error(errorMsg);
+    recordFirebaseError("Firebase Initialization", initError);
   }
+
+
 
   /* ──────────────────────────────────────────────────────────
      ELEMENTS
@@ -650,7 +536,7 @@ ${fullname}`;
       $$('.page').forEach(p => p.classList.remove('active'));
       const target = $(`#page-${hash}`);
       if (target) target.classList.add('active');
-      currentPage = pageName === 'project-detail' ? `project-detail-${projectId}` : hash;
+      currentPage = hash === 'project-detail' ? `project-detail-${projectId}` : hash;
       updateNavActive(hash);
       updateTitle(currentPage);
 
@@ -796,11 +682,7 @@ ${fullname}`;
         }
       }
     }).catch(err => {
-      console.error("Error loading featured projects:", err);
-      if (!isFirestoreDisabled && (err.code === 'permission-denied' || (err.message && err.message.includes('Cloud Firestore API')))) {
-        switchToFallback();
-        loadHomeFeaturedProjects();
-      }
+      recordFirebaseError("Featured Projects Loader", err);
     });
   }
 
@@ -840,13 +722,8 @@ ${fullname}`;
         grid.appendChild(card);
       });
     }).catch(err => {
-      console.error("Error loading public projects:", err);
-      if (!isFirestoreDisabled && (err.code === 'permission-denied' || (err.message && err.message.includes('Cloud Firestore API')))) {
-        switchToFallback();
-        loadPublicProjects();
-      } else {
-        grid.innerHTML = `<p style="font-family: var(--font-sans); font-size: 13px; opacity: 0.6; text-align: center; grid-column: 1 / -1; padding: 60px 0; color: #b00020;">Failed to load projects: ${err.message}</p>`;
-      }
+      recordFirebaseError("Public Projects Grid", err);
+      grid.innerHTML = `<p style="font-family: var(--font-sans); font-size: 13px; opacity: 0.6; text-align: center; grid-column: 1 / -1; padding: 60px 0; color: #b00020;">Failed to load projects: ${err.message}</p>`;
     });
   }
 
@@ -915,13 +792,8 @@ ${fullname}`;
       });
       
     }).catch(err => {
-      console.error("Error rendering project details:", err);
-      if (!isFirestoreDisabled && (err.code === 'permission-denied' || (err.message && err.message.includes('Cloud Firestore API')))) {
-        switchToFallback();
-        renderProjectDetail(projectId);
-      } else {
-        container.innerHTML = `<p style="font-family: var(--font-sans); font-size: 13px; opacity: 0.6; color: #b00020; text-align: center;">Failed to load project details: ${err.message}</p>`;
-      }
+      recordFirebaseError("Project Detail View", err);
+      container.innerHTML = `<p style="font-family: var(--font-sans); font-size: 13px; opacity: 0.6; color: #b00020; text-align: center;">Failed to load project details: ${err.message}</p>`;
     });
   }
 
@@ -930,57 +802,277 @@ ${fullname}`;
   let featuredIndex = -1;
   let isUploading = false;
 
-  function loadAdminDashboard() {
-    if (!db || !storage) return;
-
-    // Render Database Connection Status Indicator
+  function updateAdminStatusBox() {
     const adminPageContainer = $('#page-admin > div') || $('.page-admin > div');
-    if (adminPageContainer) {
-      let statusBox = $('#db-connection-status');
-      if (!statusBox) {
-        statusBox = document.createElement('div');
-        statusBox.id = 'db-connection-status';
-        statusBox.style.padding = '12px 20px';
-        statusBox.style.fontSize = '12px';
-        statusBox.style.fontFamily = 'var(--font-sans)';
-        statusBox.style.marginBottom = '30px';
-        statusBox.style.border = '1px solid';
-        statusBox.style.display = 'flex';
-        statusBox.style.alignItems = 'center';
-        statusBox.style.gap = '10px';
-        
-        const heading = adminPageContainer.querySelector('h1');
-        if (heading) {
-          heading.parentNode.insertBefore(statusBox, heading.nextSibling);
-        } else {
-          adminPageContainer.insertBefore(statusBox, adminPageContainer.firstChild);
-        }
-      }
+    if (!adminPageContainer) return;
+
+    let statusBox = $('#db-connection-status');
+    if (!statusBox) {
+      statusBox = document.createElement('div');
+      statusBox.id = 'db-connection-status';
+      statusBox.style.padding = '24px';
+      statusBox.style.fontSize = '13px';
+      statusBox.style.fontFamily = 'var(--font-sans)';
+      statusBox.style.marginBottom = '30px';
+      statusBox.style.border = '1px solid';
+      statusBox.style.borderRadius = '4px';
+      statusBox.style.display = 'flex';
+      statusBox.style.flexDirection = 'column';
+      statusBox.style.gap = '16px';
       
-      if (isFirestoreDisabled) {
-        statusBox.style.background = '#fff3e0';
-        statusBox.style.color = '#e65100';
-        statusBox.style.borderColor = '#ffe0b2';
-        statusBox.innerHTML = `
-          <span style="font-size: 16px;">🟡</span>
-          <div>
-            <strong>Database Mode: Local Fallback (Offline Mock)</strong>
-            <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.85;">The website is currently using browser LocalStorage because the cloud Firebase connection was blocked or refused. Projects you upload will only save in this browser locally.</p>
-          </div>
-        `;
+      const heading = adminPageContainer.querySelector('h1');
+      if (heading) {
+        heading.parentNode.insertBefore(statusBox, heading.nextSibling);
       } else {
-        statusBox.style.background = '#e8f5e9';
-        statusBox.style.color = '#2e7d32';
-        statusBox.style.borderColor = '#c8e6c9';
-        statusBox.innerHTML = `
-          <span style="font-size: 16px;">🟢</span>
-          <div>
-            <strong>Database Mode: Live Production (Cloud Firebase)</strong>
-            <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.85;">The website is successfully connected to your live Firebase Cloud Firestore. All changes are saved in real-time in the cloud.</p>
-          </div>
-        `;
+        adminPageContainer.insertBefore(statusBox, adminPageContainer.firstChild);
       }
     }
+
+    const hasInitError = (db === null);
+    const isError = hasInitError || lastFirebaseError !== null;
+
+    if (isError) {
+      statusBox.style.background = '#fff8f8';
+      statusBox.style.color = '#c62828';
+      statusBox.style.borderColor = '#ffcdd2';
+    } else {
+      statusBox.style.background = '#e8f5e9';
+      statusBox.style.color = '#2e7d32';
+      statusBox.style.borderColor = '#c8e6c9';
+    }
+
+    const titleIcon = isError ? '🔴' : '🟢';
+    const modeTitle = isError ? 'Database Mode: Disconnected / Error' : 'Database Mode: Live Production (Cloud Firebase)';
+    const modeDesc = isError 
+      ? 'The cloud Firebase database connection has failed or was blocked. Local database fallbacks have been removed.' 
+      : 'Successfully connected to your live Firebase Cloud Firestore. All operations write to the cloud in real-time.';
+
+    const sdkStatus = (typeof firebase !== 'undefined') ? 'Loaded successfully' : 'Not Loaded (Missing SDK Script)';
+    const appsStatus = (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) ? 'Initialized' : 'Not Initialized';
+    const networkStatus = navigator.onLine ? 'Online' : 'Offline (No Internet Connection)';
+
+    let configInfo = 'Unavailable';
+    if (typeof firebaseConfig !== 'undefined') {
+      const maskedKey = firebaseConfig.apiKey 
+        ? firebaseConfig.apiKey.substring(0, 8) + '...' + firebaseConfig.apiKey.substring(firebaseConfig.apiKey.length - 4) 
+        : 'None';
+      configInfo = `Project ID: <code>${firebaseConfig.projectId || 'None'}</code> | API Key: <code>${maskedKey}</code>`;
+    }
+
+    let lastErrorHtml = '';
+    if (lastFirebaseError) {
+      lastErrorHtml = `
+        <div style="background: rgba(198, 40, 40, 0.05); border-left: 3px solid #c62828; padding: 12px; margin-top: 8px; font-family: monospace; font-size: 11.5px; line-height: 1.4; overflow-x: auto; color: #b71c1c;">
+          <strong>Last Firebase Error:</strong><br/>
+          Context: ${lastFirebaseError.context}<br/>
+          Code: ${lastFirebaseError.code}<br/>
+          Message: ${lastFirebaseError.message}<br/>
+          Time: ${lastFirebaseError.timestamp}
+        </div>
+      `;
+    }
+
+    let solutionsHtml = '';
+    if (isError) {
+      let solutions = [];
+      if (typeof firebase === 'undefined') {
+        solutions.push("<strong>Adblocker Blocked Script:</strong> Your web browser or adblocker (e.g. uBlock Origin) may be blocking the Google CDN scripts (<code>gstatic.com</code>). Try disabling your adblocker for this site.");
+      }
+      if (!navigator.onLine) {
+        solutions.push("<strong>Network Offline:</strong> Check your local internet connectivity.");
+      }
+      if (lastFirebaseError) {
+        if (lastFirebaseError.code === 'permission-denied') {
+          solutions.push("<strong>Security Rules Blocked Action:</strong> The Security Rules in your Firebase Console for Cloud Firestore do not permit this read/write. Make sure they are set to allow access.");
+        } else if (lastFirebaseError.code === 'failed-precondition') {
+          solutions.push("<strong>Missing Index:</strong> Firestore requires a composite index for this query. Check the developer console log for the custom link to create it automatically.");
+        } else if (lastFirebaseError.message && lastFirebaseError.message.includes('Cloud Firestore API')) {
+          solutions.push("<strong>API Disabled:</strong> Verify that the 'Cloud Firestore API' is enabled in the Google Cloud Console for project <code>awesome--interiors</code>.");
+        }
+      }
+      if (solutions.length === 0) {
+        solutions.push("Ensure that your Firebase project configuration (<code>firebase-config.js</code>) matches your Firebase dashboard values and that Firestore is initialized in 'Production' or 'Test' mode.");
+      }
+
+      solutionsHtml = `
+        <div style="margin-top: 12px; font-size: 12px; border-top: 1px solid rgba(198, 40, 40, 0.15); padding-top: 12px;">
+          <strong style="text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">Possible Resolutions:</strong>
+          <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px;">
+            ${solutions.map(s => `<li style="line-height: 1.4;">${s}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    statusBox.innerHTML = `
+      <div style="display: flex; align-items: flex-start; gap: 12px;">
+        <span style="font-size: 20px; line-height: 1; margin-top: 2px;">${titleIcon}</span>
+        <div style="flex: 1;">
+          <strong style="font-size: 14px;">${modeTitle}</strong>
+          <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.85; line-height: 1.4;">${modeDesc}</p>
+        </div>
+      </div>
+      
+      <div style="border-top: 1px solid ${isError ? 'rgba(198,40,40,0.15)' : 'rgba(46,125,50,0.15)'}; padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 11.5px; opacity: 0.9;">
+          <span><strong>Firebase SDK:</strong> ${sdkStatus}</span>
+          <span><strong>Apps State:</strong> ${appsStatus}</span>
+          <span><strong>Network:</strong> ${networkStatus}</span>
+        </div>
+        <div style="font-size: 11.5px; opacity: 0.9;">
+          <strong>Config Check:</strong> ${configInfo}
+        </div>
+        
+        ${lastErrorHtml}
+        ${solutionsHtml}
+
+        <div style="display: flex; gap: 10px; margin-top: 6px;">
+          <button type="button" id="btn-run-diagnostics" style="
+            background: ${isError ? '#c62828' : '#2e7d32'};
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            font-size: 10.5px;
+            font-family: var(--font-sans);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: 500;
+            transition: opacity 0.2s ease;
+          ">Run Diagnostic Self-Test</button>
+          
+          <button type="button" id="btn-clear-error-log" style="
+            background: transparent;
+            color: ${isError ? '#c62828' : '#2e7d32'};
+            border: 1px solid ${isError ? 'rgba(198,40,40,0.3)' : 'rgba(46,125,50,0.3)'};
+            padding: 7px 15px;
+            font-size: 10.5px;
+            font-family: var(--font-sans);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+          ">Clear Log</button>
+        </div>
+
+        <div id="diagnostics-test-output" style="
+          display: none;
+          background: #1e1e1e;
+          color: #d4d4d4;
+          font-family: monospace;
+          font-size: 11px;
+          padding: 12px;
+          border-radius: 3px;
+          margin-top: 10px;
+          white-space: pre-wrap;
+          line-height: 1.4;
+          max-height: 200px;
+          overflow-y: auto;
+          border: 1px solid #333;
+        "></div>
+      </div>
+    `;
+
+    // Bind event handlers
+    const btnTest = statusBox.querySelector('#btn-run-diagnostics');
+    if (btnTest) {
+      btnTest.addEventListener('click', runConnectionSelfTest);
+    }
+    
+    const btnClear = statusBox.querySelector('#btn-clear-error-log');
+    if (btnClear) {
+      btnClear.addEventListener('click', () => {
+        lastFirebaseError = null;
+        updateAdminStatusBox();
+      });
+    }
+  }
+
+  function runConnectionSelfTest() {
+    const outputBox = $('#diagnostics-test-output');
+    if (!outputBox) return;
+
+    outputBox.style.display = 'block';
+    outputBox.innerHTML = `[${new Date().toLocaleTimeString()}] Starting Connection Diagnostics...\n`;
+
+    const log = (msg) => {
+      outputBox.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}\n`;
+      outputBox.scrollTop = outputBox.scrollHeight;
+    };
+
+    log("Checking Firebase Core SDK...");
+    if (typeof firebase === 'undefined') {
+      log("❌ FAILURE: 'firebase' is undefined. Script tag for Firebase app compat SDK is missing or was blocked by browser/network.");
+      log("Suggestion: Check if your browser adblocker (e.g. uBlock) or firewall is blocking gstatic.com.");
+      return;
+    }
+    log("✅ SUCCESS: Firebase Core SDK loaded.");
+
+    log("Checking Firestore service module...");
+    if (typeof firebase.firestore !== 'function') {
+      log("❌ FAILURE: 'firebase.firestore' is not a function. The Firestore SDK compat library was not loaded or is blocked.");
+      return;
+    }
+    log("✅ SUCCESS: Firestore module available.");
+
+    log("Checking Storage service module...");
+    if (typeof firebase.storage !== 'function') {
+      log("⚠️ WARNING: 'firebase.storage' is not a function. Storage module not loaded.");
+    } else {
+      log("✅ SUCCESS: Storage module available.");
+    }
+
+    log("Checking project configurations...");
+    if (typeof firebaseConfig === 'undefined') {
+      log("❌ FAILURE: 'firebaseConfig' object is not defined. Ensure firebase-config.js is correctly loaded.");
+      return;
+    }
+    log(`Config found: projectId='${firebaseConfig.projectId}'`);
+
+    log("Checking active Firebase instance...");
+    if (!firebase.apps || firebase.apps.length === 0) {
+      log("❌ FAILURE: No initialized Firebase apps found.");
+      return;
+    }
+    log(`✅ SUCCESS: Active Firebase App Count = ${firebase.apps.length}`);
+
+    log("Attempting test query from Cloud Firestore ('projects' collection)...");
+    
+    try {
+      const testDb = firebase.firestore();
+      testDb.collection('projects').limit(1).get()
+        .then(snapshot => {
+          log("✅ SUCCESS: Successfully read from Cloud Firestore database!");
+          log(`Snapshot count retrieved: ${snapshot.size}`);
+          log("Database connection is healthy.");
+        })
+        .catch(err => {
+          log(`❌ FAILURE: Query failed. Error Details:`);
+          log(`  - Error Code: '${err.code}'`);
+          log(`  - Message: '${err.message}'`);
+          
+          if (err.code === 'permission-denied') {
+            log("\n💡 SOLUTION: Firestore Security Rules block reads on 'projects' collection. Update rules in Firebase Console.");
+          } else if (err.code === 'unavailable') {
+            log("\n💡 SOLUTION: Firestore service is offline or unreachable. Check your network or the Firestore console.");
+          } else if (err.message && err.message.includes('Cloud Firestore API')) {
+            log("\n💡 SOLUTION: Ensure that the Cloud Firestore API is enabled in your Google Cloud API Console.");
+          }
+          
+          recordFirebaseError("Diagnostic Self-Test Query", err);
+        });
+    } catch (e) {
+      log(`❌ FAILURE: Exception thrown while attempting read test. Error: ${e.message}`);
+      recordFirebaseError("Diagnostic Self-Test Exception", e);
+    }
+  }
+
+  function loadAdminDashboard() {
+    // Render Database Connection Status Indicator
+    updateAdminStatusBox();
     
     const form = $('#adminProjectForm');
     const fileInput = $('#projImages');
@@ -1080,7 +1172,7 @@ ${fullname}`;
           loadHomeFeaturedProjects();
           
         } catch (err) {
-          console.error("Upload failed:", err);
+          recordFirebaseError("Project Creation Form", err);
           alert("Error creating project: " + err.message);
         } finally {
           isUploading = false;
@@ -1296,13 +1388,8 @@ ${fullname}`;
         listContainer.appendChild(item);
       });
     }).catch(err => {
-      console.error("Error loading admin projects list:", err);
-      if (!isFirestoreDisabled && (err.code === 'permission-denied' || (err.message && err.message.includes('Cloud Firestore API')))) {
-        switchToFallback();
-        renderAdminProjectsList();
-      } else {
-        listContainer.innerHTML = `<p style="font-family: var(--font-sans); font-size: 13px; opacity: 0.6; color: #b00020;">Failed to load projects: ${err.message}</p>`;
-      }
+      recordFirebaseError("Admin Projects List", err);
+      listContainer.innerHTML = `<p style="font-family: var(--font-sans); font-size: 13px; opacity: 0.6; color: #b00020;">Failed to load projects: ${err.message}</p>`;
     });
   }
 

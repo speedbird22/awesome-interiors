@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Anyone on the internet can read or write project data
+    match /projects/{projectId} {
+      allow read, write: if true;
+    }
+  }
+}
