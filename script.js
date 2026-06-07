@@ -12,6 +12,49 @@
   const $ = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
+  // Convert and compress an image file to Base64 (max width 1200px, quality 0.75)
+  // This keeps the image size small (typically under 100KB) to stay well under the 1MB Firestore document limit.
+  function compressAndToBase64(file, maxWidth = 1200, maxHeight = 900, quality = 0.75) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Resize keeping aspect ratio
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convert to Base64 JPEG
+          const base64Url = canvas.toDataURL('image/jpeg', quality);
+          resolve(base64Url);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  }
+
   /* ──────────────────────────────────────────────────────────
      STATE & FIREBASE INITIALIZATION (NO FALLBACKS)
   ────────────────────────────────────────────────────────── */
@@ -21,7 +64,7 @@
 
 
   let db = null;
-  let storage = null;
+
   let lastFirebaseError = null;
 
   function recordFirebaseError(context, err) {
@@ -56,7 +99,7 @@
   if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
     try {
       db = firebase.firestore();
-      storage = firebase.storage();
+
     } catch (e) {
       initError = e;
       recordFirebaseError("Firebase Initialization", e);
@@ -1018,12 +1061,7 @@ ${fullname}`;
     }
     log("✅ SUCCESS: Firestore module available.");
 
-    log("Checking Storage service module...");
-    if (typeof firebase.storage !== 'function') {
-      log("⚠️ WARNING: 'firebase.storage' is not a function. Storage module not loaded.");
-    } else {
-      log("✅ SUCCESS: Storage module available.");
-    }
+
 
     log("Checking project configurations...");
     if (typeof firebaseConfig === 'undefined') {
@@ -1124,26 +1162,13 @@ ${fullname}`;
         try {
           for (let i = 0; i < selectedFiles.length; i++) {
             const file = selectedFiles[i];
-            const fileId = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${file.name}`;
-            const storageRef = storage.ref(`projects/${projectId}/${fileId}`);
-            const uploadTask = storageRef.put(file);
+            statusText.innerText = `Processing image ${i + 1} of ${selectedFiles.length}...`;
+            const base64Data = await compressAndToBase64(file);
+            imageUrls.push(base64Data);
             
-            const url = await new Promise((resolve, reject) => {
-              uploadTask.on('state_changed', 
-                (snapshot) => {
-                  const filePercent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                  const totalPercent = Math.round(((i * 100) + filePercent) / selectedFiles.length);
-                  percentText.innerText = `${totalPercent}%`;
-                  progressBar.style.width = `${totalPercent}%`;
-                  statusText.innerText = `Uploading image ${i + 1} of ${selectedFiles.length}...`;
-                }, 
-                (err) => reject(err), 
-                () => {
-                  uploadTask.snapshot.ref.getDownloadURL().then(resolve);
-                }
-              );
-            });
-            imageUrls.push(url);
+            const totalPercent = Math.round(((i + 1) * 100) / selectedFiles.length);
+            percentText.innerText = `${totalPercent}%`;
+            progressBar.style.width = `${totalPercent}%`;
           }
           
           const projectData = {
@@ -1368,15 +1393,9 @@ ${fullname}`;
             deleteBtn.innerText = "DELETING...";
             
             db.collection('projects').doc(proj.id).delete().then(() => {
-              const deletePromises = proj.images.map(url => {
-                return storage.refFromURL(url).delete().catch(e => console.error("Storage delete fail:", e));
-              });
-              
-              Promise.all(deletePromises).then(() => {
-                alert("Project deleted successfully.");
-                renderAdminProjectsList();
-                loadHomeFeaturedProjects();
-              });
+              alert("Project deleted successfully.");
+              renderAdminProjectsList();
+              loadHomeFeaturedProjects();
             }).catch(err => {
               alert("Error deleting: " + err.message);
               deleteBtn.disabled = false;
