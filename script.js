@@ -19,6 +19,16 @@
   let isTransitioning = false;
   let isFirestoreDisabled = false;
 
+  // Helper to generate a Firebase-style 20-character alphanumeric ID
+  function generateFirestoreId() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let autoId = '';
+    for (let i = 0; i < 20; i++) {
+      autoId += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return autoId;
+  }
+
   // LocalStorage Database Mock
   class LocalStorageFirestoreMock {
     collection(name) {
@@ -54,12 +64,13 @@
           };
         },
         doc: (id) => {
+          const docId = id || generateFirestoreId();
           return {
-            id: id,
+            id: docId,
             get: () => {
               return new Promise((resolve) => {
                 const list = JSON.parse(localStorage.getItem(`mock_db_${name}`) || '[]');
-                const item = list.find(x => x.id === id);
+                const item = list.find(x => x.id === docId);
                 resolve({
                   exists: !!item,
                   data: () => item
@@ -69,11 +80,11 @@
             set: (data) => {
               return new Promise((resolve) => {
                 const list = JSON.parse(localStorage.getItem(`mock_db_${name}`) || '[]');
-                const dataCopy = { ...data };
+                const dataCopy = { ...data, id: docId };
                 if (dataCopy.createdAt && typeof dataCopy.createdAt === 'object') {
                   dataCopy.createdAt = new Date().toISOString();
                 }
-                const idx = list.findIndex(x => x.id === id);
+                const idx = list.findIndex(x => x.id === docId);
                 if (idx !== -1) {
                   list[idx] = { ...list[idx], ...dataCopy };
                 } else {
@@ -86,7 +97,7 @@
             delete: () => {
               return new Promise((resolve) => {
                 let list = JSON.parse(localStorage.getItem(`mock_db_${name}`) || '[]');
-                list = list.filter(x => x.id !== id);
+                list = list.filter(x => x.id !== docId);
                 localStorage.setItem(`mock_db_${name}`, JSON.stringify(list));
                 resolve();
               });
@@ -145,20 +156,8 @@
     db = new LocalStorageFirestoreMock();
     storage = new LocalStorageStorageMock();
     console.warn("Using LocalStorage fallback database and storage.");
-    // Show a user-friendly unobtrusive message on page if admin
-    const listContainer = $('#adminProjectsList');
-    if (listContainer && currentPage === 'admin') {
-      const banner = document.createElement('div');
-      banner.id = "fallback-warning-banner";
-      banner.style.background = '#ffebee';
-      banner.style.color = '#c62828';
-      banner.style.padding = '12px';
-      banner.style.fontSize = '12px';
-      banner.style.marginBottom = '20px';
-      banner.style.border = '1px solid #ffcdd2';
-      banner.style.fontFamily = 'var(--font-sans)';
-      banner.innerText = "⚠️ Cloud Firestore is disabled in your Firebase console. The website has automatically enabled a LocalStorage database fallback, allowing you to add, view, and test projects locally.";
-      listContainer.parentNode.insertBefore(banner, listContainer);
+    if (currentPage === 'admin') {
+      loadAdminDashboard();
     }
   }
 
@@ -819,7 +818,9 @@ ${fullname}`;
       
       snapshot.forEach(doc => {
         const proj = doc.data();
-        const featuredImgUrl = proj.images[proj.featuredImageIndex] || proj.images[0];
+        const coverImgUrl = (proj.coverImageIndex !== undefined && proj.coverImageIndex !== null && proj.coverImageIndex >= 0)
+          ? (proj.images[proj.coverImageIndex] || proj.images[0])
+          : (proj.images[proj.featuredImageIndex] || proj.images[0]);
         
         const card = document.createElement('a');
         card.className = 'project-item';
@@ -828,7 +829,7 @@ ${fullname}`;
         
         card.innerHTML = `
           <div class="project-img-wrap hover-zoom" style="aspect-ratio: 4/3; overflow: hidden; background: #ccc; margin-bottom: 16px;">
-            <img src="${featuredImgUrl}" alt="${proj.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;"/>
+            <img src="${coverImgUrl}" alt="${proj.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;"/>
           </div>
           <div class="project-info" style="padding: 0 4px;">
             <p class="project-name" style="font-family: var(--font-serif); font-size: 16px; font-weight: 400; font-style: italic; margin-bottom: 4px; line-height: 1.3;">${proj.name}</p>
@@ -925,11 +926,61 @@ ${fullname}`;
   }
 
   let selectedFiles = [];
-  let featuredIndex = 0;
+  let coverIndex = 0;
+  let featuredIndex = -1;
   let isUploading = false;
 
   function loadAdminDashboard() {
     if (!db || !storage) return;
+
+    // Render Database Connection Status Indicator
+    const adminPageContainer = $('#page-admin > div') || $('.page-admin > div');
+    if (adminPageContainer) {
+      let statusBox = $('#db-connection-status');
+      if (!statusBox) {
+        statusBox = document.createElement('div');
+        statusBox.id = 'db-connection-status';
+        statusBox.style.padding = '12px 20px';
+        statusBox.style.fontSize = '12px';
+        statusBox.style.fontFamily = 'var(--font-sans)';
+        statusBox.style.marginBottom = '30px';
+        statusBox.style.border = '1px solid';
+        statusBox.style.display = 'flex';
+        statusBox.style.alignItems = 'center';
+        statusBox.style.gap = '10px';
+        
+        const heading = adminPageContainer.querySelector('h1');
+        if (heading) {
+          heading.parentNode.insertBefore(statusBox, heading.nextSibling);
+        } else {
+          adminPageContainer.insertBefore(statusBox, adminPageContainer.firstChild);
+        }
+      }
+      
+      if (isFirestoreDisabled) {
+        statusBox.style.background = '#fff3e0';
+        statusBox.style.color = '#e65100';
+        statusBox.style.borderColor = '#ffe0b2';
+        statusBox.innerHTML = `
+          <span style="font-size: 16px;">🟡</span>
+          <div>
+            <strong>Database Mode: Local Fallback (Offline Mock)</strong>
+            <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.85;">The website is currently using browser LocalStorage because the cloud Firebase connection was blocked or refused. Projects you upload will only save in this browser locally.</p>
+          </div>
+        `;
+      } else {
+        statusBox.style.background = '#e8f5e9';
+        statusBox.style.color = '#2e7d32';
+        statusBox.style.borderColor = '#c8e6c9';
+        statusBox.innerHTML = `
+          <span style="font-size: 16px;">🟢</span>
+          <div>
+            <strong>Database Mode: Live Production (Cloud Firebase)</strong>
+            <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.85;">The website is successfully connected to your live Firebase Cloud Firestore. All changes are saved in real-time in the cloud.</p>
+          </div>
+        `;
+      }
+    }
     
     const form = $('#adminProjectForm');
     const fileInput = $('#projImages');
@@ -948,7 +999,8 @@ ${fullname}`;
           return;
         }
         selectedFiles = files;
-        featuredIndex = 0;
+        coverIndex = 0;
+        featuredIndex = -1;
         renderAdminPreviews();
       });
       
@@ -1009,6 +1061,7 @@ ${fullname}`;
             date: $('#projDate').value.trim(),
             category: $('#projCategory').value.trim(),
             images: imageUrls,
+            coverImageIndex: coverIndex,
             featuredImageIndex: featuredIndex,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           };
@@ -1018,7 +1071,8 @@ ${fullname}`;
           alert("Project created successfully!");
           form.reset();
           selectedFiles = [];
-          featuredIndex = 0;
+          coverIndex = 0;
+          featuredIndex = -1;
           if (previewsContainer) previewsContainer.innerHTML = '';
           progressContainer.style.display = 'none';
           
@@ -1052,43 +1106,96 @@ ${fullname}`;
         item.style.border = '1px solid rgba(0,0,0,0.15)';
         item.style.padding = '4px';
         item.style.background = '#fff';
+        item.style.display = 'flex';
+        item.style.flexDirection = 'column';
+        item.style.gap = '4px';
+        
+        const isCover = index === coverIndex;
+        const isHighlighted = index === featuredIndex;
+        
+        if (isCover) {
+          item.style.borderColor = '#2e7d32';
+          item.style.borderWidth = '2px';
+          item.style.padding = '3px';
+        } else if (isHighlighted) {
+          item.style.borderColor = '#d29b02';
+          item.style.borderWidth = '2px';
+          item.style.padding = '3px';
+        }
         
         const img = document.createElement('img');
         img.src = e.target.result;
         img.style.width = '100%';
-        img.style.height = '80px';
+        img.style.height = '85px';
         img.style.objectFit = 'cover';
+        img.style.display = 'block';
         
         const star = document.createElement('button');
         star.type = 'button';
         star.style.position = 'absolute';
-        star.style.bottom = '8px';
-        star.style.left = '50%';
-        star.style.transform = 'translateX(-50%)';
-        star.style.background = 'rgba(255,255,255,0.9)';
-        star.style.border = '1px solid rgba(0,0,0,0.2)';
+        star.style.top = '8px';
+        star.style.right = '8px';
+        star.style.background = 'rgba(255,255,255,0.95)';
+        star.style.border = '1px solid rgba(0,0,0,0.15)';
         star.style.borderRadius = '50%';
-        star.style.width = '24px';
-        star.style.height = '24px';
+        star.style.width = '26px';
+        star.style.height = '26px';
         star.style.cursor = 'pointer';
         star.style.display = 'flex';
         star.style.alignItems = 'center';
         star.style.justifyContent = 'center';
-        star.style.color = index === featuredIndex ? '#d29b02' : '#888';
+        star.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';
+        star.style.transition = 'all 0.2s ease';
+        star.title = isHighlighted ? "Remove Highlight from Homepage" : "Highlight Project on Homepage";
+
+        star.style.color = isHighlighted ? '#d29b02' : '#888';
         star.innerHTML = `
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="${index === featuredIndex ? '#d29b02' : 'none'}" stroke="currentColor" stroke-width="2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="${isHighlighted ? '#d29b02' : 'none'}" stroke="${isHighlighted ? '#d29b02' : '#888'}" stroke-width="2">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
           </svg>
         `;
         
         star.addEventListener('click', (ev) => {
           ev.preventDefault();
-          featuredIndex = index;
+          ev.stopPropagation();
+          featuredIndex = isHighlighted ? -1 : index;
           renderAdminPreviews();
         });
         
+        const coverBtn = document.createElement('button');
+        coverBtn.type = 'button';
+        coverBtn.style.width = '100%';
+        coverBtn.style.padding = '5px 0';
+        coverBtn.style.fontSize = '9px';
+        coverBtn.style.fontFamily = 'var(--font-sans)';
+        coverBtn.style.letterSpacing = '0.5px';
+        coverBtn.style.textTransform = 'uppercase';
+        coverBtn.style.cursor = 'pointer';
+        coverBtn.style.border = '1px solid';
+        coverBtn.style.transition = 'all 0.2s ease';
+        
+        if (isCover) {
+          coverBtn.style.background = '#2e7d32';
+          coverBtn.style.color = '#fff';
+          coverBtn.style.borderColor = '#2e7d32';
+          coverBtn.innerText = '✓ Cover';
+        } else {
+          coverBtn.style.background = '#f5f5f5';
+          coverBtn.style.color = '#555';
+          coverBtn.style.borderColor = '#ccc';
+          coverBtn.innerText = 'Set Cover';
+          
+          coverBtn.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            coverIndex = index;
+            renderAdminPreviews();
+          });
+        }
+        
         item.appendChild(img);
         item.appendChild(star);
+        item.appendChild(coverBtn);
         container.appendChild(item);
       }
       reader.readAsDataURL(file);
@@ -1119,10 +1226,21 @@ ${fullname}`;
         
         let thumbsHtml = '';
         proj.images.forEach((imgUrl, idx) => {
+          const isCover = idx === (proj.coverImageIndex !== undefined ? proj.coverImageIndex : 0);
           const isFeatured = idx === proj.featuredImageIndex;
+          
+          let borderStyle = '1px solid rgba(0,0,0,0.1)';
+          if (isCover) borderStyle = '2px solid #2e7d32'; // green border for cover
+          else if (isFeatured) borderStyle = '2px solid #d29b02'; // gold border for featured
+          
           thumbsHtml += `
-            <div style="position: relative; width: 60px; height: 60px; border: 1px solid ${isFeatured ? '#d29b02' : 'rgba(0,0,0,0.1)'}; padding: 2px;">
+            <div style="position: relative; width: 60px; height: 60px; border: ${borderStyle}; padding: 2px;">
               <img src="${imgUrl}" style="width: 100%; height: 100%; object-fit: cover;"/>
+              ${isCover ? `
+                <div style="position: absolute; top: 2px; left: 2px; background: #2e7d32; border-radius: 3px; padding: 1px 3px; color: white; font-size: 6px; font-weight: bold; line-height: 1;">
+                  COVER
+                </div>
+              ` : ''}
               ${isFeatured ? `
                 <div style="position: absolute; bottom: 2px; right: 2px; background: #d29b02; border-radius: 50%; width: 12px; height: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 8px;">
                   ★
