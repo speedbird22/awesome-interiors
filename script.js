@@ -99,7 +99,11 @@
   if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
     try {
       db = firebase.firestore();
-
+      
+      // Enable Firestore offline persistence for instant loading on mobile/reloads
+      db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+        console.warn("Firestore offline persistence could not be enabled:", err.code);
+      });
     } catch (e) {
       initError = e;
       recordFirebaseError("Firebase Initialization", e);
@@ -150,6 +154,12 @@
   ────────────────────────────────────────────────────────── */
   function navigateTo(pageName, pushState = true) {
     if (pageName === currentPage || isTransitioning) return;
+
+    // Clean up previous canvas animation if navigating away from home
+    if (window._canvasCleanup) {
+      window._canvasCleanup();
+      window._canvasCleanup = null;
+    }
 
     let targetPage = pageName;
     let projectId = '';
@@ -202,6 +212,7 @@
         triggerPageEntryAnimations(targetPage);
 
         // 8. Init page-specific features
+        if (['home', 'projects', 'foundation', 'contact', 'project-detail'].includes(targetPage)) initHeroCanvas();
         if (targetPage === 'projects') loadPublicProjects();
         if (targetPage === 'project-detail') renderProjectDetail(projectId);
         if (targetPage === 'admin') loadAdminDashboard();
@@ -756,9 +767,10 @@ ${fullname}`;
           <div class="project-img-wrap hover-zoom" style="aspect-ratio: 4/3; overflow: hidden; background: #ccc; margin-bottom: 16px;">
             <img src="${coverImgUrl}" alt="${proj.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;"/>
           </div>
-          <div class="project-info" style="padding: 0 4px;">
-            <p class="project-name" style="font-family: var(--font-serif); font-size: 16px; font-weight: 400; font-style: italic; margin-bottom: 4px; line-height: 1.3;">${proj.name}</p>
-            <p class="project-cat" style="font-family: var(--font-sans); font-size: 10.5px; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.6;">${proj.location} &nbsp;&middot;&nbsp; ${proj.category}</p>
+          <div class="project-info" style="padding: 0 4px; display: flex; flex-direction: column; align-items: flex-start;">
+            <p class="project-name" style="font-family: var(--font-serif); font-size: 16px; font-weight: 400; font-style: italic; margin-bottom: 4px; line-height: 1.3; color: var(--black);">${proj.name}</p>
+            <p class="project-cat" style="font-family: var(--font-sans); font-size: 10.5px; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.6; color: var(--black);">${proj.location} &nbsp;&middot;&nbsp; ${proj.category}</p>
+            <span class="project-view-btn" style="color: var(--black);">View Project &rarr;</span>
           </div>
         `;
         
@@ -788,8 +800,8 @@ ${fullname}`;
       proj.images.forEach((imgUrl, idx) => {
         if (idx === 0) {
           imagesHtml += `
-            <div class="hover-zoom" style="grid-column: 1 / -1; aspect-ratio: 16/9; overflow: hidden; background: #ddd; margin-bottom: 20px;">
-              <img src="${imgUrl}" alt="${proj.name}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease;"/>
+            <div class="ripple-container" style="grid-column: 1 / -1; aspect-ratio: 16/9; overflow: hidden; background: #ddd; margin-bottom: 20px; position: relative;">
+              <img class="ripple-bg" src="${imgUrl}" alt="${proj.name}" style="width: 100%; height: 100%; object-fit: cover; display: block;"/>
             </div>
           `;
         } else {
@@ -821,7 +833,7 @@ ${fullname}`;
           </div>
         </div>
         
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px;">
+        <div class="project-detail-images-grid">
           ${imagesHtml}
         </div>
       `;
@@ -1413,16 +1425,212 @@ ${fullname}`;
   }
 
   /* ──────────────────────────────────────────────────────────
+     21. INTERACTIVE CANVAS BACKGROUND FOR HERO PANEL 1 (WATER PHYSICS RIPPLES)
+  ────────────────────────────────────────────────────────── */
+  /* ──────────────────────────────────────────────────────────
+     21. INTERACTIVE CANVAS BACKGROUND FOR HERO PANEL 1 (WATER PHYSICS RIPPLES)
+  ────────────────────────────────────────────────────────── */
+  function initHeroCanvas() {
+    if (window._canvasCleanup) {
+      window._canvasCleanup();
+      window._canvasCleanup = null;
+    }
+    const canvas = $('#heroCanvas');
+    const feImage = $('#fe-image');
+    if (!canvas || !feImage) return;
+
+    const ctx = canvas.getContext('2d');
+    let animationId = null;
+    
+    // Wave physics resolution (downscaled for high performance)
+    const width = 128;
+    const height = 128;
+    
+    canvas.width = width;
+    canvas.height = height;
+    
+    const size = width * height;
+    let buffer1 = new Float32Array(size);
+    let buffer2 = new Float32Array(size);
+    
+    // ImageData structure to hold displacement map values
+    const dispImgData = ctx.createImageData(width, height);
+    const dispData = dispImgData.data;
+
+    // Trigger ripple function dynamically targeting the passed container
+    function triggerRipple(cx, cy, container, strength = 250) {
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const gx = Math.round(((cx - rect.left) / rect.width) * width);
+      const gy = Math.round(((cy - rect.top) / rect.height) * height);
+      
+      if (gx > 1 && gx < width - 1 && gy > 1 && gy < height - 1) {
+        const idx = gx + gy * width;
+        buffer1[idx] = strength;
+        buffer1[idx - 1] = strength / 2;
+        buffer1[idx + 1] = strength / 2;
+        buffer1[idx - width] = strength / 2;
+        buffer1[idx + width] = strength / 2;
+      }
+    }
+
+    // Input handlers bound globally to target active page container dynamically
+    let lastX = 0;
+    let lastY = 0;
+    
+    const handleMove = (clientX, clientY, container) => {
+      const dist = Math.hypot(clientX - lastX, clientY - lastY);
+      if (dist > 8) {
+        triggerRipple(clientX, clientY, container, 250);
+        lastX = clientX;
+        lastY = clientY;
+      }
+    };
+
+    const onMouseMove = (e) => {
+      const container = e.target.closest('.ripple-container');
+      if (container && container.closest('.page.active')) {
+        handleMove(e.clientX, e.clientY, container);
+      }
+    };
+    
+    const onTouchMove = (e) => {
+      if (e.touches.length > 0) {
+        const target = e.touches[0].target;
+        const container = target.closest('.ripple-container');
+        if (container && container.closest('.page.active')) {
+          handleMove(e.touches[0].clientX, e.touches[0].clientY, container);
+        }
+      }
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+
+    // Automatic slow random ripples at faster intervals across all containers
+    let timeoutId = null;
+    function autoRipple() {
+      const activePage = $('.page.active');
+      if (activePage) {
+        const containers = [];
+        if (activePage.classList.contains('ripple-container')) {
+          containers.push(activePage);
+        }
+        containers.push(...activePage.querySelectorAll('.ripple-container'));
+        
+        if (containers.length > 0) {
+          const container = containers[Math.floor(Math.random() * containers.length)];
+          const rect = container.getBoundingClientRect();
+          const rx = rect.left + Math.random() * rect.width;
+          const ry = rect.top + Math.random() * rect.height;
+          triggerRipple(rx, ry, container, Math.random() * 100 + 150);
+        }
+      }
+      timeoutId = setTimeout(autoRipple, Math.random() * 800 + 600);
+    }
+    
+    // Start auto ripples
+    timeoutId = setTimeout(autoRipple, 800);
+
+    // Simulation loop
+    function animate() {
+      // 1. Physics wave solver
+      for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+          const i = x + y * width;
+          buffer2[i] = (
+            buffer1[i - 1] +
+            buffer1[i + 1] +
+            buffer1[i - width] +
+            buffer1[i + width]
+          ) / 2 - buffer2[i];
+          buffer2[i] *= 0.98; // damping
+        }
+      }
+      
+      const temp = buffer1;
+      buffer1 = buffer2;
+      buffer2 = temp;
+
+      // 2. Generate displacement map (Red/Green refraction channels)
+      let i = 0;
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          let r = 127;
+          let g = 127;
+
+          if (x > 0 && x < width - 1 && y > 0 && y < height - 1) {
+            const idx = x + y * width;
+            const dx = buffer1[idx - 1] - buffer1[idx + 1];
+            const dy = buffer1[idx - width] - buffer1[idx + width];
+            
+            // Map values to R and G channels
+            r = Math.max(0, Math.min(255, Math.round(127 + dx * 1.5)));
+            g = Math.max(0, Math.min(255, Math.round(127 + dy * 1.5)));
+          }
+
+          dispData[i]     = r;
+          dispData[i + 1] = g;
+          dispData[i + 2] = 127;
+          dispData[i + 3] = 255;
+          i += 4;
+        }
+      }
+
+      ctx.putImageData(dispImgData, 0, 0);
+      
+      try {
+        const dataUrl = canvas.toDataURL();
+        feImage.setAttribute('href', dataUrl);
+      } catch (e) {
+        console.error("Failed to generate data URL for SVG water displacement filter:", e);
+      }
+
+      animationId = requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    // Cleanup removing global event listeners safely
+    window._canvasCleanup = () => {
+      cancelAnimationFrame(animationId);
+      clearTimeout(timeoutId);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('touchmove', onTouchMove);
+    };
+  }
+
+  // Bind scroll down indicator click event
+  function initScrollIndicator() {
+    const indicator = $('.hero-panel .scroll-down-indicator');
+    if (indicator) {
+      indicator.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.scrollTo({
+          top: window.innerHeight - 57,
+          behavior: 'smooth'
+        });
+      });
+    }
+  }
+
+  /* ──────────────────────────────────────────────────────────
      INIT
   ────────────────────────────────────────────────────────── */
   document.addEventListener('DOMContentLoaded', () => {
     loadHomeFeaturedProjects();
     handleInitialRoute();
+    initHeroCanvas();
+    initScrollIndicator();
   });
 
   if (document.readyState !== 'loading') {
     loadHomeFeaturedProjects();
     handleInitialRoute();
+    initHeroCanvas();
+    initScrollIndicator();
   }
 
 })();

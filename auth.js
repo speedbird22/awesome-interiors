@@ -291,7 +291,7 @@
           blocker = document.createElement("div");
           blocker.className = "contact-form-blocker";
           blocker.innerHTML = `
-            <div class="blocker-text">Sign in to continue</div>
+            <div class="blocker-text">Sign in to get a direct estimation</div>
             <button class="blocker-btn" id="blockerSignInBtn">SIGN IN</button>
           `;
           wrap.appendChild(blocker);

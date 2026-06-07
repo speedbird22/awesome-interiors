@@ -82,8 +82,19 @@
         <div class="hero-panel" style="background:#1e3a2f; top:0;">
           <a class="hero-panel-link" href="projects.html" data-page="projects">
             <div class="hero-inner" style="background:#1e3a2f;">
-              <div class="hero-frame">
-                <img src="images/image-main-1.png" alt="Luxury interior by Awesome Interiors" loading="eager"/>
+              <div class="hero-frame ripple-container" id="hero-canvas-container" style="position: relative; overflow: hidden;">
+                <!-- High-res background image -->
+                <img class="ripple-bg" src="images/image-main-1.png" alt="Luxury interior by Awesome Interiors" loading="eager" style="width: 100%; height: 100%; object-fit: cover; display: block;"/>
+
+                <div class="panel-featured-info" style="position: absolute; bottom: 40px; left: 40px; z-index: 5; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+                  <span style="font-family: var(--font-sans); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.8; display: block; margin-bottom: 4px;">Awesome Interiors</span>
+                  <h3 class="noe-heading" style="font-size: clamp(24px, 4.5vw, 48px); margin: 0 0 12px 0; font-style: italic; font-weight: normal;">Discover Our Work</h3>
+                  <span class="cta-label" style="color: #fff;"><span>Explore Projects &rarr;</span></span>
+                </div>
+                <div class="scroll-down-indicator" style="position:absolute; bottom:40px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:8px; color:rgba(255,255,255,0.75); cursor:pointer; z-index: 6;">
+                  <span style="font-family: var(--font-sans); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; font-weight: 400;">Scroll Down</span>
+                  <svg class="scroll-arrow" width="12" height="13" viewBox="0 0 12 13" fill="none" style="animation: bounce 2s infinite;"><path d="M1 6.5L6 11.5L11 6.5" stroke="currentColor" stroke-width="1.5"/><path d="M6 1V11.5" stroke="currentColor" stroke-width="1.5"/></svg>
+                </div>
               </div>
             </div>
           </a>
@@ -181,8 +192,11 @@
 
 
       <!-- Home Footer -->
-      <footer class="site-footer" style="background:#eaebe1; color:#d29b02;">
-        <div class="footer-body">
+      <footer class="site-footer ripple-container" style="position: relative; overflow: hidden; background: transparent; color: #fff;">
+        <div class="hero-bg-wrap">
+          <img class="ripple-bg" src="images/image-main-1.png" alt="Footer Background" loading="lazy"/>
+        </div>
+        <div class="footer-body" style="position: relative; z-index: 2;">
           <p class="footer-tagline">Full-service interior design for residential &amp; commercial spaces — founded by Pallavi Reddy in Hyderabad since 2014.</p>
           <nav class="footer-nav">
             <ul>
@@ -192,13 +206,13 @@
             </ul>
           </nav>
         </div>
-        <div class="footer-logo-wrap">
+        <div class="footer-logo-wrap" style="position: relative; z-index: 2;">
           <div class="footer-brand-text">
             <span class="footer-brand-name">Awesome Interiors</span>
             <span class="footer-brand-sub">Pallavi Reddy</span>
           </div>
         </div>
-        <div class="footer-bottom-bar">
+        <div class="footer-bottom-bar" style="position: relative; z-index: 2;">
           <span>© Awesome Interiors 2026. All rights reserved.</span>
           <div><a href="#">Privacy Policy</a> <a href="#">Cookie Policy</a></div>
         </div>
@@ -209,13 +223,16 @@
 
     <!-- ====== PROJECTS PAGE ====== -->
     <div class="page page-projects" id="page-projects">
-      <div class="projects-hero" style="background:#eaebe1;">
-        <div class="projects-hero-text">
+      <div class="projects-hero ripple-container" style="position: relative; overflow: hidden; background: transparent;">
+        <div class="hero-bg-wrap">
+          <img class="ripple-bg" src="images/image-projects-bg.png" alt="Awesome Interiors Projects" loading="eager"/>
+        </div>
+        <div class="projects-hero-text" style="position: relative; z-index: 2;">
           <h1 class="noe-heading reveal-bottom">Discover a selection of The Studio's finest works.</h1>
         </div>
 
         <!-- Projects Grid -->
-        <div class="projects-grid" id="projectsGrid" style="padding-top: 48px;">
+        <div class="projects-grid" id="projectsGrid" style="padding-top: 48px; position: relative; z-index: 2;">
           <p style="font-family: var(--font-sans); font-size: 13px; opacity: 0.6; text-align: center; grid-column: 1 / -1; padding: 40px 0;">Loading projects...</p>
         </div>
 
@@ -223,7 +240,7 @@
       </div>
 
       <!-- Projects Footer -->
-      <footer class="site-footer" style="background:#eaebe1; color:#d29b02;">
+      <footer class="site-footer" style="background:#1d142b; color:#d29b02;">
         <div class="footer-body">
           <nav class="footer-nav">
             <ul>
@@ -248,8 +265,11 @@
 
     <!-- ====== FOUNDATION PAGE ====== -->
     <div class="page page-foundation" id="page-foundation">
-      <div class="foundation-hero" style="background:#201547; min-height: calc(100vh - var(--header-h)); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; box-sizing:border-box; padding: 40px 20px;">
-        <div class="foundation-hero-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:20px;">
+      <div class="foundation-hero ripple-container" style="min-height: calc(100vh - var(--header-h)); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; box-sizing:border-box; padding: 40px 20px; overflow: hidden; background: transparent;">
+        <div class="hero-bg-wrap">
+          <img class="ripple-bg" src="images/image-foundation-bg.png" alt="Awesome Interiors Foundation" loading="eager"/>
+        </div>
+        <div class="foundation-hero-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:20px; position: relative; z-index: 2;">
           <h1 class="noe-heading" style="font-size: clamp(38px, 8vw, 84px); font-weight:400; font-style:italic; color:#f8f6f2; letter-spacing:-0.01em; line-height:1; margin:0;">The Foundation</h1>
           <p style="font-family: var(--font-sans); font-size: clamp(10px, 1.2vw, 13px); letter-spacing: 4px; text-transform: uppercase; color: rgba(248,246,242,0.6); margin:0;">Awesome Interiors</p>
         </div>
@@ -283,7 +303,7 @@
       </div>
 
       <!-- Foundation Footer -->
-      <footer class="site-footer" style="background:#ebe7da; color:#d29b02;">
+      <footer class="site-footer" style="background:#1d142b; color:#d29b02;">
         <div class="footer-body">
           <nav class="footer-nav">
             <ul>
@@ -306,8 +326,11 @@
     </div>
 
     <!-- ====== CONTACT PAGE ====== -->
-    <div class="page page-contact" id="page-contact">
-      <div class="contact-wrap">
+    <div class="page page-contact ripple-container" id="page-contact" style="position: relative; overflow: hidden; min-height: 100vh;">
+      <div class="hero-bg-wrap">
+        <img class="ripple-bg" src="images/image-contact-bg.png" alt="Awesome Interiors Contact" loading="eager"/>
+      </div>
+      <div class="contact-wrap" style="position: relative; z-index: 2;">
         <div class="contact-intro">
           <p class="body-text center-text">For general enquiries or to discuss a new project, please use the contact form below or reach us directly via email.</p>
         </div>
@@ -484,7 +507,7 @@
       </div>
       
       <!-- Detail page footer -->
-      <footer class="site-footer" style="background:#ebe7da; color:#d29b02; border-top: 1px solid rgba(0,0,0,0.05);">
+      <footer class="site-footer" style="background:#1d142b; color:#d29b02; border-top: none;">
         <div class="footer-body">
           <nav class="footer-nav">
             <ul>
@@ -506,7 +529,19 @@
       </footer>
     </div>
 
-  </main>
+  <!-- Global helper canvas and SVG filter for water ripple physics -->
+  <div id="global-ripple-container" style="position: fixed; inset: 0; z-index: -9999; pointer-events: none; overflow: hidden; width: 100%; height: 100%; visibility: hidden;">
+    <canvas id="heroCanvas" style="display: none;"></canvas>
+    <svg style="position: absolute; width: 100%; height: 100%; pointer-events: none; visibility: hidden; z-index: -1;">
+      <defs>
+        <filter id="water-ripple" color-interpolation-filters="sRGB" x="0%" y="0%" width="100%" height="100%">
+          <feImage id="fe-image" href="" result="ripple-map" x="0%" y="0%" width="100%" height="100%" preserveAspectRatio="none" />
+          <feGaussianBlur in="ripple-map" stdDeviation="1.5" result="blurred-ripple" />
+          <feDisplacementMap in="SourceGraphic" in2="blurred-ripple" scale="48" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </defs>
+    </svg>
+  </div>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>

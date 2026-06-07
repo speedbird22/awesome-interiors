@@ -402,6 +402,42 @@ html::-webkit-scrollbar { width: 0; }
   transform: scale(1.03);
 }
 
+/* Water Ripple background elements styling to keep images crisp/high-res */
+.ripple-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: url(#water-ripple);
+  transition: none !important;
+  will-change: filter, transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Ensure no scale transitions on hover for ripple background elements */
+.hero-panel-link:hover .hero-frame .ripple-bg,
+.hover-zoom:hover .ripple-bg {
+  transform: none !important;
+}
+
+/* Absolute positioned background image wrappers behind content */
+.hero-bg-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Contact page wrapper transparent background override to reveal water ripples underneath */
+.page-contact.ripple-container .contact-wrap {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
 /* ---- SPLIT PANELS (panels 3 & 4) ---- */
 .split-panel {
   width: 100%;
@@ -1067,6 +1103,24 @@ a .cta-label { color: var(--black); }
 
 .project-item.hidden { display: none; }
 
+.project-view-btn {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 12px;
+  font-weight: 500;
+  border-bottom: 1px solid currentColor;
+  display: inline-block;
+  padding-bottom: 2px;
+  opacity: 0.8;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.project-item:hover .project-view-btn {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
 .projects-cta-block {
   padding: 80px 20px;
   display: flex;
@@ -1345,6 +1399,7 @@ a .cta-label { color: var(--black); }
 }
 
 .reveal-bottom {
+  position: relative;
   overflow: hidden;
 }
 .reveal-bottom::after {
@@ -1366,6 +1421,11 @@ a .cta-label { color: var(--black); }
   .split-right { display: none; }
   .split-left { width: 100%; }
   .split-text .noe-heading { font-size: 18px; }
+  .project-view-btn {
+    opacity: 1 !important;
+    transform: none !important;
+    color: #d29b02;
+  }
 }
 
 /* White text utility */
@@ -1740,6 +1800,19 @@ a .cta-label { color: var(--black); }
   0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
   40% { transform: translateY(-6px); }
   60% { transform: translateY(-3px); }
+}
+
+.project-detail-images-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+}
+
+@media (max-width: 767px) {
+  .project-detail-images-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 
