@@ -1815,4 +1815,184 @@ a .cta-label { color: var(--black); }
   }
 }
 
+/* ---------- PROJECTS PAGE WAVE BACKGROUND & STYLE OVERRIDES ---------- */
+.projects-graphic-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 0%, #f4f5ee, #eaebe1); /* Beige theme matching other pages */
+  overflow: hidden;
+}
+
+/* Translucent abstract floating design elements (Glassmorphic mesh gradient blobs) */
+.abstract-blob {
+  position: absolute;
+  border-radius: 50%;
+  mix-blend-mode: multiply; /* Blends beautifully on light beige backgrounds */
+  filter: blur(80px);
+  opacity: 0.16;
+  will-change: transform;
+}
+
+.blob-1 {
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, rgba(210, 155, 2, 0.4) 0%, rgba(210, 155, 2, 0) 70%);
+  top: -10vw;
+  left: -10vw;
+  animation: floatBlob1 30s ease-in-out infinite alternate;
+}
+
+.blob-2 {
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, rgba(138, 43, 226, 0.3) 0%, rgba(138, 43, 226, 0) 70%);
+  bottom: -15vw;
+  right: -10vw;
+  animation: floatBlob2 45s ease-in-out infinite alternate;
+}
+
+.blob-3 {
+  width: 40vw;
+  height: 40vw;
+  background: radial-gradient(circle, rgba(218, 112, 214, 0.3) 0%, rgba(218, 112, 214, 0) 70%);
+  top: 40%;
+  left: 30%;
+  animation: floatBlob3 35s ease-in-out infinite alternate;
+}
+
+.blob-4 {
+  width: 45vw;
+  height: 45vw;
+  background: radial-gradient(circle, rgba(210, 155, 2, 0.25) 0%, rgba(210, 155, 2, 0) 70%);
+  bottom: 30%;
+  left: -5vw;
+  animation: floatBlob4 40s ease-in-out infinite alternate;
+}
+
+/* Infinitely loop animation paths for translucent blobs */
+@keyframes floatBlob1 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(15vw, 10vh) scale(1.1); }
+  100% { transform: translate(-5vw, 20vh) scale(0.9); }
+}
+
+@keyframes floatBlob2 {
+  0% { transform: translate(0, 0) scale(1.1); }
+  50% { transform: translate(-20vw, -15vh) scale(0.95); }
+  100% { transform: translate(5vw, 5vh) scale(1.05); }
+}
+
+@keyframes floatBlob3 {
+  0% { transform: translate(0, 0) scale(0.9); }
+  50% { transform: translate(-10vw, 25vh) scale(1.15); }
+  100% { transform: translate(10vw, -10vh) scale(1); }
+}
+
+@keyframes floatBlob4 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(25vw, -20vh) scale(0.9); }
+  100% { transform: translate(-10vw, 15vh) scale(1.1); }
+}
+
+/* Layered wavy patterns, repeat vertically, scroll parallax to represent waves */
+.waves-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  opacity: 0.55;
+  background-image: 
+    /* Wave Layer 1: Elegant Gold Waves (More spread out, 800px height, thicker stroke) */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='800' viewBox='0 0 1200 800' preserveAspectRatio='none'%3E%3Cpath d='M 150,0 C 150,100 70,100 70,200 C 70,300 150,300 150,400 C 150,500 230,500 230,600 C 230,700 150,700 150,800 M 550,0 C 550,100 630,100 630,200 C 630,300 550,300 550,400 C 550,500 470,500 470,600 C 470,700 550,700 550,800 M 950,0 C 950,100 870,100 870,200 C 870,300 950,300 950,400 C 950,500 1030,500 1030,600 C 1030,700 950,700 950,800' fill='none' stroke='%23d29b02' stroke-width='4' stroke-opacity='0.5'/%3E%3C/svg%3E"),
+    /* Wave Layer 2: Translucent Orchid Wave Contours (More spread out, 1000px height, thicker stroke) */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='1000' viewBox='0 0 1200 1000' preserveAspectRatio='none'%3E%3Cpath d='M 0,300 Q 300,550 600,300 T 1200,300 L 1200,1000 L 0,1000 Z' fill='url(%23grad-orchid)' fill-opacity='0.08'/%3E%3Cpath d='M 0,300 Q 300,550 600,300 T 1200,300' fill='none' stroke='%23da70d6' stroke-width='4' stroke-opacity='0.5'/%3E%3Cdefs%3E%3ClinearGradient id='grad-orchid' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23da70d6' stop-opacity='1'/%3E%3Cstop offset='100%25' stop-color='%23eaebe1' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E"),
+    /* Wave Layer 3: Violet Waves & Gold Dash lines (More spread out, 900px height, thicker stroke) */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='900' viewBox='0 0 1200 900' preserveAspectRatio='none'%3E%3Cpath d='M 300,0 C 300,112.5 380,112.5 380,225 C 380,337.5 300,337.5 300,450 C 300,562.5 220,562.5 220,675 C 220,787.5 300,787.5 300,900 M 800,0 C 800,112.5 720,112.5 720,225 C 720,337.5 800,337.5 800,450 C 800,562.5 880,562.5 880,675 C 880,787.5 800,787.5 800,900' fill='none' stroke='%238a2be2' stroke-width='4.5' stroke-opacity='0.5'/%3E%3Cpath d='M 500,0 C 500,112.5 490,112.5 490,225 C 490,337.5 550,337.5 550,450 C 550,562.5 610,562.5 610,675 C 610,787.5 550,787.5 550,900' fill='none' stroke='%23d29b02' stroke-width='3' stroke-dasharray='8,8' stroke-opacity='0.5'/%3E%3C/svg%3E");
+  background-repeat: repeat-y;
+  background-size: 100% 800px, 100% 1000px, 100% 900px;
+  animation: parallaxWaves 40s linear infinite;
+  will-change: background-position;
+}
+
+@keyframes parallaxWaves {
+  0% {
+    background-position: 0 0, 0 0, 0 0;
+  }
+  100% {
+    background-position: 0 800px, 0 -1000px, 0 900px;
+  }
+}
+
+.page-projects {
+  background-color: #eaebe1 !important; /* Beige theme matching other pages */
+  color: var(--black);
+}
+
+.page-projects .hero-bg-wrap {
+  position: fixed; /* Keep background static in viewport to prevent distortion of water ripples */
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.page-projects .noe-heading {
+  color: var(--black) !important;
+}
+
+.page-projects .projects-grid {
+  color: var(--black);
+}
+
+.page-projects .project-name {
+  color: var(--black) !important;
+}
+
+.page-projects .project-cat {
+  color: #d29b02 !important;
+  opacity: 0.85 !important;
+}
+
+.page-projects .project-view-btn {
+  color: var(--black) !important;
+  border-bottom-color: #d29b02 !important;
+}
+
+.page-projects #projectsGrid p {
+  color: var(--black) !important;
+  opacity: 0.7;
+}
+
+/* Override sticky filter bar styles to fit beige theme */
+.page-projects .projects-filter-wrap {
+  background: #eaebe1 !important;
+  border-bottom-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.page-projects .filter-btn {
+  color: var(--black) !important;
+  opacity: 0.6;
+}
+
+.page-projects .filter-btn:hover {
+  opacity: 1;
+}
+
+.page-projects .filter-btn.active {
+  opacity: 1;
+  border-bottom-color: var(--black) !important;
+}
+
+/* Call to action adjustments if any */
+.page-projects .projects-cta-block .cta-label {
+  color: #d29b02 !important;
+}
+
+
 

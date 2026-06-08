@@ -54,13 +54,22 @@
 
   <main id="mainContent">
     <div class="page page-projects active" id="page-projects">
-      <div class="projects-hero" style="background:#eaebe1;">
-        <div class="projects-hero-text">
+      <div class="projects-hero ripple-container" style="position: relative; overflow: hidden; background: transparent;">
+        <div class="hero-bg-wrap">
+          <div class="ripple-bg projects-graphic-bg">
+            <div class="abstract-blob blob-1"></div>
+            <div class="abstract-blob blob-2"></div>
+            <div class="abstract-blob blob-3"></div>
+            <div class="abstract-blob blob-4"></div>
+            <div class="waves-overlay"></div>
+          </div>
+        </div>
+        <div class="projects-hero-text" style="position: relative; z-index: 2;">
           <h1 class="noe-heading reveal-bottom">Discover a selection of our finest works.</h1>
         </div>
 
         <!-- Projects Grid -->
-        <div class="projects-grid" id="projectsGrid" style="padding-top: 48px;">
+        <div class="projects-grid" id="projectsGrid" style="padding-top: 48px; position: relative; z-index: 2;">
           <p style="font-family: var(--font-sans); font-size: 13px; opacity: 0.6; text-align: center; grid-column: 1 / -1; padding: 40px 0;">Loading projects...</p>
         </div>
 

@@ -1463,7 +1463,12 @@ ${fullname}`;
 
       const rect = container.getBoundingClientRect();
       const gx = Math.round(((cx - rect.left) / rect.width) * width);
-      const gy = Math.round(((cy - rect.top) / rect.height) * height);
+      
+      // Map Y coordinate relative to viewport if container uses a fixed background or is tall
+      const isFixed = rect.height > window.innerHeight * 1.2;
+      const heightVal = isFixed ? window.innerHeight : rect.height;
+      const yOffset = isFixed ? cy : (cy - rect.top);
+      const gy = Math.round((yOffset / heightVal) * height);
       
       if (gx > 1 && gx < width - 1 && gy > 1 && gy < height - 1) {
         const idx = gx + gy * width;
