@@ -1621,6 +1621,93 @@ ${fullname}`;
     }
   }
 
+  // Reviews Carousel logic
+  function initReviewsCarousel() {
+    const carousel = $('.review-carousel-wrap');
+    if (!carousel) return;
+
+    const slides = $$('.review-slide', carousel);
+    const dots = $$('.dot', carousel);
+    const prevBtn = $('.carousel-control.prev', carousel);
+    const nextBtn = $('.carousel-control.next', carousel);
+    
+    if (!slides.length) return;
+
+    let currentIndex = 0;
+
+    function showSlide(index) {
+      slides.forEach((slide, i) => {
+        slide.classList.toggle('active', i === index);
+      });
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === index);
+      });
+      currentIndex = index;
+    }
+
+    if (prevBtn) {
+      prevBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        let idx = currentIndex - 1;
+        if (idx < 0) idx = slides.length - 1;
+        showSlide(idx);
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        let idx = currentIndex + 1;
+        if (idx >= slides.length) idx = 0;
+        showSlide(idx);
+      });
+    }
+
+    dots.forEach((dot, idx) => {
+      dot.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        showSlide(idx);
+      });
+    });
+  }
+
+  // Stats counting up animation when scrolled into view
+  function initCounters() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const numbers = $$('.count-up-number', entry.target);
+          numbers.forEach(num => {
+            const target = parseInt(num.dataset.target, 10);
+            if (isNaN(target)) return;
+            
+            let current = 0;
+            const duration = 1500; // ms animation duration
+            const increment = target > 50 ? Math.ceil(target / 40) : 1;
+            const stepTime = Math.max(Math.floor(duration / (target / increment)), 15);
+            
+            const timer = setInterval(() => {
+              current += increment;
+              if (current >= target) {
+                num.innerText = target;
+                clearInterval(timer);
+              } else {
+                num.innerText = current;
+              }
+            }, stepTime);
+          });
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    const triggerEl = $('.reviews-about-panel');
+    if (triggerEl) observer.observe(triggerEl);
+  }
+
   /* ──────────────────────────────────────────────────────────
      INIT
   ────────────────────────────────────────────────────────── */
@@ -1629,6 +1716,8 @@ ${fullname}`;
     handleInitialRoute();
     initHeroCanvas();
     initScrollIndicator();
+    initReviewsCarousel();
+    initCounters();
   });
 
   if (document.readyState !== 'loading') {
@@ -1636,6 +1725,8 @@ ${fullname}`;
     handleInitialRoute();
     initHeroCanvas();
     initScrollIndicator();
+    initReviewsCarousel();
+    initCounters();
   }
 
 })();

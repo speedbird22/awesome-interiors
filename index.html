@@ -12,6 +12,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" type="image/png" href="images/favicon.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet"/>
 </head>
 <body>
 
@@ -23,11 +25,9 @@
 
   <!-- Loading Screen (Homepage only) -->
   <div class="loading-screen" id="loadingScreen">
-    <div class="loading-logo-wrap loading-text-wrap">
-      <div class="loading-brand-text">
-        <span class="loading-brand-name">Awesome Interiors</span>
-        <span class="loading-brand-sub">Pallavi Reddy</span>
-      </div>
+    <div class="loading-logo-wrap loading-text-wrap" style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+      <img src="images/logo.png" alt="Awesome Interiors Logo" style="max-width: 320px; width: 100%; height: auto; display: block; margin: 0 auto; filter: drop-shadow(0px 2px 10px rgba(210, 155, 2, 0.3));"/>
+      <span class="loading-brand-sub" style="font-family: var(--font-sans); font-size: clamp(10px, 1.5vw, 13px); font-weight: 300; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.6); display: block; text-align: center;">Pallavi Reddy</span>
     </div>
   </div>
 
@@ -100,28 +100,488 @@
           </a>
         </div>
 
-        <!-- Panel 2: Split — About Pallavi Reddy — midnight navy -->
-        <div class="hero-panel" style="background:#1a2744; top:57px;">
+        <!-- Panel 2: Split — About Pallavi Reddy — light theme editorial -->
+        <div class="hero-panel founder-card-panel" style="background:#fcfbf7; top:57px;">
           <div class="split-panel">
-            <div class="split-left founder-panel" style="background:#1a2744;">
-              <div class="split-text">
-                <div class="founder-content">
-                  <span class="founder-eyebrow">Founder &amp; Owner &mdash; Awesome Interiors</span>
-                  <h2 class="founder-name">Pallavi Reddy</h2>
-                  <span class="founder-meta">Hyderabad, Telangana &nbsp;&middot;&nbsp; Est. 2014</span>
-                  <ul class="founder-highlights">
-                    <li>Full-service interior design studio for residential &amp; commercial projects.</li>
-                    <li>End-to-end ownership &mdash; consultation, concept, procurement, and handover.</li>
-                    <li>Trusted for quality delivery, precise coordination, and lasting client relationships.</li>
-                  </ul>
+            <div class="split-left founder-panel-left" style="background:#fcfbf7;">
+              <div class="founder-editorial-content">
+                <p class="founder-editorial-para">
+                  Awesome Interiors is the epitome of excellence in interior design. Our team of expert designers has earned numerous accolades for their exceptional work, and we are committed to exceeding your expectations. Trust us to transform your space into an extraordinary living experience.
+                </p>
+                <div class="founder-signature-wrap">
+                  <div class="founder-signature">Pallavi Reddy</div>
+                  <div class="founder-signature-name">Pallavi Reddy</div>
+                  <div class="founder-signature-title">CEO, Founder</div>
                 </div>
-                <p class="cta-label"><a href="contact.html" data-page="contact"><span>Get in Touch</span></a></p>
+                <p class="cta-label founder-cta"><a href="contact.html" data-page="contact"><span>Get in Touch</span></a></p>
               </div>
             </div>
-            <div class="split-right">
-              <a href="contact.html" data-page="contact">
-                <img src="images/image-main-2.jpg" alt="Pallavi Reddy — Founder Awesome Interiors" loading="lazy"/>
-              </a>
+            <div class="split-right founder-panel-right">
+              <img src="images/trellis-bg.png" alt="Trellis backdrop" loading="lazy" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;"/>
+              <div class="founder-quote-card" style="position: relative; z-index: 2; margin: auto;">
+                <blockquote class="founder-quote-text">
+                  “Interior design is about more than just aesthetics – it’s about creating a functional and harmonious living space that reflects your personality and lifestyle.”
+                </blockquote>
+                <cite class="founder-quote-author">— Pallavi Reddy</cite>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2.5 (Panel 3): Client Reviews, Stats & About Banner -->
+        <div class="hero-panel reviews-about-panel" style="background:#ffffff; top:57px;">
+          
+          <!-- Upper Section: White Reviews & Stats -->
+          <div class="reviews-stats-section">
+            <h2 class="reviews-section-title">Here's What Our Satisfied Clients Are Saying</h2>
+            
+            <!-- Review Carousel -->
+            <div class="review-carousel-wrap">
+              <div class="review-carousel-track">
+                <!-- Slide 1 -->
+                <div class="review-slide active">
+                  <div class="review-stars">★★★★★</div>
+                  <blockquote class="review-text">
+                    "Awesome Interiors transformed my dull living room into a stunning space that I'm proud to show off. Their design services are top-notch and highly recommended!"
+                  </blockquote>
+                  <div class="review-author-wrap">
+                    <div class="review-avatar">PS</div>
+                    <span class="review-author-name">Priya Suresh</span>
+                  </div>
+                </div>
+                <!-- Slide 2 -->
+                <div class="review-slide">
+                  <div class="review-stars">★★★★★</div>
+                  <blockquote class="review-text">
+                    "The team is extremely professional and creative. They designed our 3BHK flat in Gachibowli with great care and attention to detail. Excellent execution!"
+                  </blockquote>
+                  <div class="review-author-wrap">
+                    <div class="review-avatar">AS</div>
+                    <span class="review-author-name">Amit Sharma</span>
+                  </div>
+                </div>
+                <!-- Slide 3 -->
+                <div class="review-slide">
+                  <div class="review-stars">★★★★★</div>
+                  <blockquote class="review-text">
+                    "From design selection to execution, the process was seamless. Our modular wardrobe and pooja unit look stunning. Highly recommend Pallavi Reddy!"
+                  </blockquote>
+                  <div class="review-author-wrap">
+                    <div class="review-avatar">DI</div>
+                    <span class="review-author-name">Deepika Iyer</span>
+                  </div>
+                </div>
+                <!-- Slide 4 -->
+                <div class="review-slide">
+                  <div class="review-stars">★★★★☆</div>
+                  <blockquote class="review-text">
+                    "They delivered outstanding office interior work on time and within budget. Their design options were very modern, premium, and functional."
+                  </blockquote>
+                  <div class="review-author-wrap">
+                    <div class="review-avatar">RP</div>
+                    <span class="review-author-name">Rajesh Patel</span>
+                  </div>
+                </div>
+                <!-- Slide 5 -->
+                <div class="review-slide">
+                  <div class="review-stars">★★★★★</div>
+                  <blockquote class="review-text">
+                    "Highly creative and responsive team. They kept us updated throughout the renovation. Our kitchen is now the highlight of our home!"
+                  </blockquote>
+                  <div class="review-author-wrap">
+                    <div class="review-avatar">KN</div>
+                    <span class="review-author-name">Kavita Nair</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Navigation Controls -->
+              <button class="carousel-control prev" aria-label="Previous review">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 19l-7-7 7-7"/></svg>
+              </button>
+              <button class="carousel-control next" aria-label="Next review">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5l7 7-7 7"/></svg>
+              </button>
+              
+              <div class="carousel-dots">
+                <span class="dot active"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </div>
+            </div>
+            
+            <!-- Stats Grid -->
+            <div class="stats-grid-container count-trigger">
+              <div class="stat-item">
+                <div class="stat-num-wrap"><span class="count-up-number" data-target="70">0</span>+</div>
+                <div class="stat-label">Interior Design</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-num-wrap"><span class="count-up-number" data-target="40">0</span>+</div>
+                <div class="stat-label">Architecture</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-num-wrap"><span class="count-up-number" data-target="38">0</span>+</div>
+                <div class="stat-label">Construction</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-num-wrap"><span class="count-up-number" data-target="90">0</span>+</div>
+                <div class="stat-label">Projects Done</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Lower Section: Dark About Us Banner -->
+          <div class="about-banner-section">
+            <div class="about-banner-inner">
+              <div class="about-experience-box">
+                <div class="bracket-wrap">
+                  <span class="bracket-left">[</span>
+                  <div class="experience-number">
+                    <span class="count-up-number" data-target="10">0</span>+
+                  </div>
+                  <span class="bracket-right">]</span>
+                </div>
+                <div class="experience-label">Years experience working</div>
+              </div>
+              
+              <div class="about-text-content">
+                <span class="about-eyebrow">ABOUT US</span>
+                <h3 class="about-heading">MAKE YOUR SPACE AWESOME WITH OUR INTERIORS!</h3>
+              </div>
+              
+              <div class="about-cta-content">
+                <p class="about-para">
+                  Elevate your space with awesome interiors. Unleash your imagination and find your style with our unique and creative design ideas. Create a beautiful home now!
+                </p>
+                <a class="about-explore-btn" href="projects.html" data-page="projects">
+                  <span>EXPLORE NOW! &nbsp;➔</span>
+                </a>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+
+        <!-- Panel 3: Services We Offer -->
+        <div class="hero-panel services-panel" style="background:#1b1e22; top:57px;">
+          <div class="services-panel-inner">
+            <div class="services-header">
+              <div class="services-bg-text">What We Offer</div>
+              <div class="services-fg-text">Our Expertise</div>
+            </div>
+            
+            <div class="services-grid-container">
+              <!-- Box 1: Modular Kitchen -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Hood / Cabinet structure -->
+                  <path d="M12 8 h40 v8 h-40 z" />
+                  <path d="M22 16 v8 h20 v-8" />
+                  <path d="M16 32 h32 v24 h-32 z" />
+                  <!-- Stove outline -->
+                  <path class="icon-accent" d="M24 32 h16 v2 h-16 z" />
+                  <circle cx="28" cy="38" r="3" />
+                  <circle cx="36" cy="38" r="3" />
+                  <!-- Pot outline -->
+                  <path class="icon-accent" d="M26 26 h12 v6 h-12 z" />
+                  <path d="M24 28 h2" />
+                  <path d="M38 28 h2" />
+                </svg>
+                <span class="service-label">Modular Kitchen</span>
+              </div>
+              
+              <!-- Box 2: Modular Wardrobe -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Wardrobe outline -->
+                  <path d="M16 8 h32 v48 h-32 z" />
+                  <!-- Doors split -->
+                  <path d="M32 8 v48" />
+                  <!-- Handles -->
+                  <path class="icon-accent" d="M30 24 v8" />
+                  <path class="icon-accent" d="M34 24 v8" />
+                  <!-- Inner shelves visual indicator -->
+                  <path d="M16 20 h32" />
+                  <path d="M16 44 h32" />
+                </svg>
+                <span class="service-label">Modular Wardrobe</span>
+              </div>
+              
+              <!-- Box 3: Entertainment Unit -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Console table -->
+                  <path d="M10 40 h44 v12 h-44 z" />
+                  <path d="M18 52 v4" />
+                  <path d="M46 52 v4" />
+                  <!-- TV Outline -->
+                  <path d="M14 14 h36 v20 h-36 z" />
+                  <path d="M28 34 h8" />
+                  <path d="M30 34 l-2 6 h8 l-2 -6" />
+                  <!-- Shelf details -->
+                  <path class="icon-accent" d="M16 46 h12" />
+                  <path class="icon-accent" d="M36 46 h12" />
+                </svg>
+                <span class="service-label">Entertainment Unit</span>
+              </div>
+              
+              <!-- Box 4: Pooja Unit -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Base platform -->
+                  <path d="M12 48 h40 v8 h-40 z" />
+                  <!-- Pillars -->
+                  <path d="M18 24 v24" />
+                  <path d="M46 24 v24" />
+                  <!-- Dome structure -->
+                  <path d="M14 24 c0 -12 8 -16 18 -16 s18 4 18 16 z" />
+                  <!-- Hanging Bell -->
+                  <path class="icon-accent" d="M32 20 v12" />
+                  <path class="icon-accent" d="M30 32 h4 v4 h-4 z" />
+                </svg>
+                <span class="service-label">Pooja Unit</span>
+              </div>
+              
+              <!-- Box 5: Movable Furniture -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Armchair/Sofa outline -->
+                  <path d="M14 24 v16 c0 4 4 8 8 8 h20 c4 0 8 -4 8 -8 v-16" />
+                  <path d="M10 24 h44 v6 h-44 z" />
+                  <!-- Legs -->
+                  <path d="M16 48 l-2 6" />
+                  <path d="M48 48 l2 6" />
+                  <!-- Cushion line -->
+                  <path class="icon-accent" d="M14 38 h36" />
+                </svg>
+                <span class="service-label">Movable Furniture</span>
+              </div>
+              
+              <!-- Box 6: Study Table -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Table outline -->
+                  <path d="M10 32 h44 v6 h-44 z" />
+                  <path d="M14 38 v18" />
+                  <path d="M50 38 v18" />
+                  <!-- Table Lamp -->
+                  <path class="icon-accent" d="M18 32 h6 v-2 h-6 z" />
+                  <path class="icon-accent" d="M21 30 v-8" />
+                  <path class="icon-accent" d="M17 22 h8 l-2 -6 h-4 z" />
+                  <!-- Laptop/Book open -->
+                  <path d="M32 32 l4 -6 h12 l-4 6" />
+                </svg>
+                <span class="service-label">Study Table</span>
+              </div>
+              
+              <!-- Box 7: False Ceiling -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Outer ceiling outline -->
+                  <path d="M8 8 h48 v48 h-48 z" />
+                  <!-- Recessed drop ceiling layer -->
+                  <path class="icon-accent" d="M16 16 h32 v32 h-32 z" />
+                  <!-- Center fan or light fixture -->
+                  <circle cx="32" cy="32" r="4" />
+                  <path d="M32 20 v8" />
+                  <path d="M32 36 v8" />
+                  <path d="M20 32 h8" />
+                  <path d="M36 32 h8" />
+                </svg>
+                <span class="service-label">False Ceiling</span>
+              </div>
+              
+              <!-- Box 8: Lights -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Multiple pendant lights hanging -->
+                  <!-- Light 1 -->
+                  <path d="M20 8 v20" />
+                  <path class="icon-accent" d="M16 28 h8 l-2 6 h-4 z" />
+                  <!-- Light 2 (center) -->
+                  <path d="M32 8 v28" />
+                  <path class="icon-accent" d="M27 36 h10 l-3 8 h-4 z" />
+                  <!-- Light 3 -->
+                  <path d="M44 8 v16" />
+                  <path class="icon-accent" d="M40 24 h8 l-2 6 h-4 z" />
+                </svg>
+                <span class="service-label">Lights</span>
+              </div>
+              
+              <!-- Box 9: Wall Paper & Paint -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Paint roller outline -->
+                  <path d="M14 24 h20 v-12 h-20 z" />
+                  <path class="icon-accent" d="M34 18 h6 v18 h-12 v4" />
+                  <path d="M28 40 h2" />
+                  <!-- Wall paint stroke representation -->
+                  <path d="M12 28 h24" />
+                  <path class="icon-accent" d="M8 34 h20" />
+                  <path d="M16 40 h16" />
+                </svg>
+                <span class="service-label">Wall Paper & Paint</span>
+              </div>
+              
+              <!-- Box 10: Partition -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Folding Partition screen -->
+                  <!-- Panel 1 -->
+                  <path d="M12 12 l8 -4 v44 l-8 4 z" />
+                  <!-- Panel 2 -->
+                  <path class="icon-accent" d="M20 8 l24 6 v38 l-24 -6 z" />
+                  <!-- Panel 3 -->
+                  <path d="M44 14 l8 -4 v44 l-8 4 z" />
+                  <!-- Slat patterns inside panel 2 -->
+                  <path d="M26 18 v26" />
+                  <path d="M32 20 v26" />
+                  <path d="M38 21 v26" />
+                </svg>
+                <span class="service-label">Partition</span>
+              </div>
+              
+              <!-- Box 11: Wall Cladding -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Brick Wall Veneer pattern -->
+                  <path d="M8 8 h48 v48 h-48 z" />
+                  <!-- Horizontal splits -->
+                  <path d="M8 20 h48" />
+                  <path d="M8 32 h48" />
+                  <path d="M8 44 h48" />
+                  <!-- Vertical splits (staggered) -->
+                  <path class="icon-accent" d="M24 8 v12" />
+                  <path class="icon-accent" d="M40 8 v12" />
+                  <path class="icon-accent" d="M16 20 v12" />
+                  <path class="icon-accent" d="M36 20 v12" />
+                  <path class="icon-accent" d="M24 32 v12" />
+                  <path class="icon-accent" d="M44 32 v12" />
+                  <path class="icon-accent" d="M20 44 v12" />
+                </svg>
+                <span class="service-label">Wall Cladding</span>
+              </div>
+              
+              <!-- Box 12: Renovation -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- House + tools (Renovation) -->
+                  <path d="M12 30 v22 h16 v-8 h8 v8 h16 v-22" />
+                  <path d="M8 32 l24 -18 l24 18" />
+                  <!-- Crossed hammer and wrench -->
+                  <path class="icon-accent" d="M24 40 l16 -16" />
+                  <path class="icon-accent" d="M40 40 l-16 -16" />
+                </svg>
+                <span class="service-label">Renovation</span>
+              </div>
+              
+              <!-- Box 13: Plumbing -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Piping network -->
+                  <path d="M10 24 h28 v28" />
+                  <path d="M38 12 v12 h16" />
+                  <path d="M6 24 h4" />
+                  <path d="M54 24 h4" />
+                  <!-- Faucet details -->
+                  <path class="icon-accent" d="M20 16 c0 -4 4 -4 4 0 v8" />
+                  <!-- Falling droplet -->
+                  <path class="icon-accent" d="M22 34 c0 2 -2 4 -2 4 s-2 -2 -2 -4 c0 -1 2 -3 2 -3 s2 2 2 3 z" />
+                </svg>
+                <span class="service-label">Plumbing</span>
+              </div>
+              
+              <!-- Box 14: Electrician -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Bulb and flash -->
+                  <path d="M32 12 c-8 0 -12 6 -12 12 c0 4 3 8 5 10 l2 6 h10 l2 -6 c2 -2 5 -6 5 -10 c0 -6 -4 -12 -12 -12 z" />
+                  <path d="M27 46 h10" />
+                  <path d="M29 50 h6" />
+                  <!-- Lightning bolt spark -->
+                  <path class="icon-accent" d="M32 20 l-4 8 h6 l-4 8" />
+                </svg>
+                <span class="service-label">Electrician</span>
+              </div>
+              
+              <!-- Box 15: Wooden Flooring -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Plank flooring board pattern -->
+                  <path d="M8 8 h48 v48 h-48 z" />
+                  <path d="M8 24 h48" />
+                  <path d="M8 40 h48" />
+                  <!-- Vertical staggered joints -->
+                  <path class="icon-accent" d="M22 8 v16" />
+                  <path class="icon-accent" d="M42 8 v16" />
+                  <path class="icon-accent" d="M14 24 v16" />
+                  <path class="icon-accent" d="M34 24 v16" />
+                  <path class="icon-accent" d="M28 40 v16" />
+                  <path class="icon-accent" d="M48 40 v16" />
+                </svg>
+                <span class="service-label">Wooden Flooring</span>
+              </div>
+              
+              <!-- Box 16: CNC Designs -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Trellis patterns / geometric stars -->
+                  <path d="M8 8 h48 v48 h-48 z" />
+                  <!-- Geometric diagonals -->
+                  <path class="icon-accent" d="M8 8 l48 48" />
+                  <path class="icon-accent" d="M56 8 l-48 48" />
+                  <circle cx="32" cy="32" r="12" />
+                  <path d="M32 8 v48" />
+                  <path d="M8 32 h48" />
+                </svg>
+                <span class="service-label">CNC Designs</span>
+              </div>
+              
+              <!-- Box 17: Crockery Unit -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Buffet cabinet display structure -->
+                  <path d="M14 8 h36 v48 h-36 z" />
+                  <!-- Shelf levels -->
+                  <path d="M14 20 h36" />
+                  <path d="M14 36 h36" />
+                  <!-- Glass door splits -->
+                  <path class="icon-accent" d="M32 8 v28" />
+                  <!-- Glass outline indicators -->
+                  <path d="M20 14 l4 -4" />
+                  <path d="M40 14 l4 -4" />
+                  <!-- Bottom drawer handles -->
+                  <path class="icon-accent" d="M20 46 h6" />
+                  <path class="icon-accent" d="M38 46 h6" />
+                </svg>
+                <span class="service-label">Crockery Unit</span>
+              </div>
+              
+              <!-- Box 18: Bar Unit -->
+              <div class="service-card">
+                <svg class="service-icon" viewBox="0 0 64 64">
+                  <!-- Bar counter + stools -->
+                  <!-- Counter top -->
+                  <path d="M10 28 h44 v6 h-44 z" />
+                  <!-- Stool legs -->
+                  <path d="M18 34 l-2 22" />
+                  <path d="M26 34 l2 22" />
+                  <path d="M38 34 l-2 22" />
+                  <path d="M46 34 l2 22" />
+                  <!-- Footrests -->
+                  <path d="M15 48 h14" />
+                  <path d="M35 48 h14" />
+                  <!-- Hanging Glass silhouettes -->
+                  <path class="icon-accent" d="M20 8 v8" />
+                  <circle class="icon-accent" cx="20" cy="18" r="3" />
+                  <path class="icon-accent" d="M44 8 v8" />
+                  <circle class="icon-accent" cx="44" cy="18" r="3" />
+                </svg>
+                <span class="service-label">Bar Unit</span>
+              </div>
             </div>
           </div>
         </div>
@@ -142,6 +602,13 @@
                 <img src="images/image-main-3.png" alt="Awesome Interiors signature project" loading="lazy"/>
               </a>
             </div>
+          </div>
+        </div>
+
+        <!-- Panel 3.5 (Panel 6): Featured Projects Intro Card -->
+        <div class="hero-panel featured-projects-intro-panel" style="background:#000000; top:57px;">
+          <div class="intro-panel-inner">
+            <h2 class="featured-projects-intro-text">View the Studio's Finest Projects</h2>
           </div>
         </div>
 
